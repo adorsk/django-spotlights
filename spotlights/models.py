@@ -29,6 +29,10 @@ class Slide(TimestampedModel):
     def __str__(self):
         return "Slide ({})".format(self.title)
 
+    def get_channels(self):
+        return [membership.channel
+                for membership in self.channelmembership_set.all()]
+
 class Channel(TimestampedModel):
     title = models.CharField(max_length=200)
 
