@@ -26,9 +26,16 @@
 
     <div class="slide-footer">
         <div class="attribute">
-            <label>Link</label>
+            <label>ID</label>
             <div class="value">
-                {{request.get_host}}{% url 'spotlights:slide-detail' slide.id %} 
+                {{ slide.id }} 
+            </div>
+        </div>
+
+        <div class="attribute">
+            <label>Title</label>
+            <div class="value">
+                {{ slide.title }} 
             </div>
         </div>
 
@@ -47,7 +54,7 @@
         <div class="attribute truncated">
             <label>Channels</label>
             <div class="value">
-                {{ slide.get_channels |join:', ' }}
+                {{ channel_titles |join:', ' }}
             </div>
         </div>
 
