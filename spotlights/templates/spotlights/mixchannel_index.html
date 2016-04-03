@@ -1,4 +1,5 @@
 {% load staticfiles %}
+{% load spotlights %}
 
 <html>
 
@@ -12,62 +13,8 @@
                 {{request.get_host}}{{request.path}}
             </header>
 
-            <main>
-                <div class="slide-container">
-                    <div class="slide-body">
-                        <div class="slide-figure-container">
-                            <div class="slide-figure">
-                                {% if slide.image_file or slide.image_url %}
-                                <div class="slide-img-container">
-                                    <img class="slide-img"
-                                    {% if slide.image_file %}
-                                    src="{{slide.image_file.url}}"
-                                    {% elif slide.image_url %}
-                                    src="{{slide.image_url}}"
-                                    {% endif %}
-                                    >
-                                </div>
-                                {% else %}
-                                No content for slide.
-                                {% endif %}
-                            </div>
-                            <div class="slide-caption-container">
-                                <div class="slide-caption">
-                                    {{slide.caption}}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="slide-footer">
-                        <div class="attribute">
-                            <label>Link</label>
-                            <div class="value">
-                                {{request.get_host}}{% url 'spotlights:slide-detail' slide.id %} 
-                            </div>
-                        </div>
-
-                        <div class="attribute">
-                            <label>Author</label>
-                            <div class="value">{{slide.author.username}}</div>
-                        </div>
-
-                        <div class="attribute">
-                            <label>Published</label>
-                            <div class="value">
-                                {{ slide.created|date:"D, N d, h:m A" }}
-                            </div>
-                        </div>
-
-                        <div class="attribute truncated">
-                            <label>Channels</label>
-                            <div class="value">
-                                {{ slide_channel_titles |join:', ' }}
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
+            <main> 
+                {% render_slide request=request slide=slide %}
             </main>
 
         </div>
