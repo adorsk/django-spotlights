@@ -55,10 +55,15 @@ def mixchannel_index(request, mixchannel_id):
 
     _update_prev_slide_for_channel(channel, request, slide)
     _update_prev_channel_for_mixchannel(mixchannel, request, channel)
+
+    slide_channel_titles = [membership.channel.title
+                            for membership in slide.channelmembership_set.all()]
+
     return render(request, 'spotlights/mixchannel_index.html', context={
         'slide': slide,
         'channel': channel,
         'mixchannel': mixchannel,
+        'slide_channel_titles': slide_channel_titles,
     })
 
 def _get_next_channel_for_mixchannel(mixchannel, request):

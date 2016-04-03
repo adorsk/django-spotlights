@@ -1,5 +1,6 @@
 import datetime
 from django.db import models
+from django.contrib.auth.models import User
 
 class TimestampedModel(models.Model):
     created = models.DateTimeField(auto_now_add=True)
@@ -17,7 +18,13 @@ def get_slide_image_upload_path(instance, filename):
 
 class Slide(TimestampedModel):
     title = models.CharField(max_length=200)
-    image = models.FileField(upload_to=get_slide_image_upload_path, blank=True)
+    image_file = models.FileField(upload_to=get_slide_image_upload_path, blank=True)
+    image_url = models.CharField(max_length=800)
+    caption = models.CharField(max_length=200, blank=True)
+    author = models.ForeignKey(User, related_name='slides', blank=True,
+                               null=True, editable=False)
+    last_modified_by = models.ForeignKey(User, name='modified_slides',
+                                         blank=True, null=True, editable=False)
 
     def __str__(self):
         return "Slide ({})".format(self.title)
@@ -44,7 +51,10 @@ class Channel(TimestampedModel):
 
     def get_slide_after(self, prev_slide_id):
         slide = None
-        prev_slide = Slide.objects.get(id=prev_slide_id)
+        try:
+            prev_slide = Slide.objects.get(id=prev_slide_id)
+        except:
+            return slide
         later_memberships = self._get_ordered_memberships_query().filter(
             slide__created__gt=prev_slide.created)
         next_membership = later_memberships.first()
@@ -78,7 +88,10 @@ class MixChannel(TimestampedModel):
 
     def get_channel_after(self, prev_channel_id):
         channel = None
-        prev_channel = Channel.objects.get(id=prev_channel_id)
+        try:
+            prev_channel = Channel.objects.get(id=prev_channel_id)
+        except:
+            return None
         later_memberships = self._get_ordered_memberships_query().filter(
             channel__created__gt=prev_channel.created)
         next_membership = later_memberships.first()

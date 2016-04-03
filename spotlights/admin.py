@@ -35,6 +35,12 @@ class MixChannelMembershipInline(admin.TabularInline):
 class SlideAdmin(admin.ModelAdmin):
     inlines = (ChannelMembershipInline,)
 
+    def save_model(self, request, obj, form, change):
+        if not change:
+            obj.author = request.user
+        obj.last_modified_by = request.user
+        obj.save()
+
 class ChannelAdmin(admin.ModelAdmin):
     inlines = (ChannelMembershipDisplayInline,)
 
