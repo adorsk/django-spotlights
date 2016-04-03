@@ -2,9 +2,8 @@
 Spotlights
 =====
 
-===
-DANGER
-===
+**DANGER!**
+
 **Work-in-progress! Not ready for production use yet!**
 
 A Django slideshow app.
