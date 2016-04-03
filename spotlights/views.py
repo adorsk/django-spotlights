@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.views.generic.detail import DetailView
+from django.core.urlresolvers import reverse
 
 from . import models
 
@@ -56,10 +57,14 @@ def mixchannel_index(request, mixchannel_id):
     _update_prev_slide_for_channel(channel, request, slide)
     _update_prev_channel_for_mixchannel(mixchannel, request, channel)
 
+    channel_admin_url = reverse('admin:spotlights_mixchannel_change',
+                                args=(mixchannel.id,))
+
     return render(request, 'spotlights/mixchannel_index.html', context={
         'slide': slide,
         'channel': channel,
         'mixchannel': mixchannel,
+        'channel_admin_url': channel_admin_url,
     })
 
 def _get_next_channel_for_mixchannel(mixchannel, request):

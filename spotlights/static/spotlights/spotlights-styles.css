@@ -16,6 +16,10 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+a {
+  color: inherit;
+}
+
 .main-container {
   flex-direction: column;
   display: flex;

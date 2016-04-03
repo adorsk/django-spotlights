@@ -10,7 +10,10 @@
     <body>
         <div class="main-container">
             <header>
-                {{request.get_host}}{{request.path}}
+                CHANNEL: {{mixchannel.title}}
+                <span style="float: right;"> manage this channel:
+                    <a href="{{channel_admin_url}}">{{ request.get_host }}{{channel_admin_url}}</a>
+                </span>
             </header>
 
             <main> 
