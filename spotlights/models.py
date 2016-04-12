@@ -64,8 +64,9 @@ class QueueItem(TimestampedModel):
 
 class Display(TimestampedModel):
     title = models.CharField(max_length=200)
-    queue = models.OneToOneField(Queue, on_delete=models.CASCADE,
-                                 primary_key=True)
+    queue = models.OneToOneField(
+        Queue, editable=False, on_delete=models.CASCADE)
+                                 
     def __str__(self):
         return "(Display) {}".format(self.title)
 

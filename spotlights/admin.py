@@ -29,7 +29,9 @@ admin.site.register(QueueItem)
 class DisplayAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         if not change:
-            obj.queue = Queue(title="__{}-queue".format(
-                form.cleaned_data['title'])).save()
+            queue_title = "_queue-for-{}".format(obj.title)
+            queue = Queue(title=queue_title)
+            queue.save()
+            obj.queue = queue
         obj.save()
 admin.site.register(Display, DisplayAdmin)

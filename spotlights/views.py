@@ -9,7 +9,6 @@ from .models import Display, Queue
 def show_next_item_for_display(request, display_id):
     display = Display.objects.get(pk=display_id)
     queue = display.queue
-    print("d: ", display, "q: ", queue)
     all_queues_history = request.session.get('history', {})
     next_queue_item = queue.get_next_queue_item(
         all_queues_history=all_queues_history)
@@ -18,8 +17,8 @@ def show_next_item_for_display(request, display_id):
         queue_history.append(next_queue_item.id)
         all_queues_history[str(queue.id)] = queue_history
     request.session['history'] = all_queues_history
-    queue_admin_url = request.build_absolute_uri(
-        reverse('admin:spotlights_display_change', args=(queue_id)))
+    display_admin_url = request.build_absolute_uri(
+        reverse('admin:spotlights_display_change', args=(queue.id,)))
     return render(request, 'spotlights/display_item_view.html', context={
         'item': next_queue_item.item,
         'display': queue,
