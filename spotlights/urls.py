@@ -5,5 +5,5 @@ from . import views
 
 app_name = 'spotlights'
 urlpatterns = [
-    url(r'^queue/(?P<queue_id>\d+)/next_item/$', views.show_next_item),
+    url(r'^display/(?P<display_id>\d+)/$', views.show_next_item_for_display),
 ]

@@ -62,6 +62,13 @@ class QueueItem(TimestampedModel):
             self.item_content_type,
         )
 
+class Display(TimestampedModel):
+    title = models.CharField(max_length=200)
+    queue = models.OneToOneField(Queue, on_delete=models.CASCADE,
+                                 primary_key=True)
+    def __str__(self):
+        return "(Display) {}".format(self.title)
+
 class BaseSlide(TimestampedModel):
     title = models.CharField(max_length=200, blank=True)
     author = models.ForeignKey(

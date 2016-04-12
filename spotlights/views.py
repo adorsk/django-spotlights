@@ -4,10 +4,12 @@ from django.views.generic.detail import DetailView
 from django.core.urlresolvers import reverse
 import json
 
-from .models import Queue
+from .models import Display, Queue
 
-def show_next_item(request, queue_id):
-    queue = Queue.objects.get(pk=queue_id)
+def show_next_item_for_display(request, display_id):
+    display = Display.objects.get(pk=display_id)
+    queue = display.queue
+    print("d: ", display, "q: ", queue)
     all_queues_history = request.session.get('history', {})
     next_queue_item = queue.get_next_queue_item(
         all_queues_history=all_queues_history)
@@ -17,9 +19,9 @@ def show_next_item(request, queue_id):
         all_queues_history[str(queue.id)] = queue_history
     request.session['history'] = all_queues_history
     queue_admin_url = request.build_absolute_uri(
-        reverse('admin:spotlights_queue_change', args=(queue_id)))
-    return render(request, 'spotlights/queue_item_view.html', context={
+        reverse('admin:spotlights_display_change', args=(queue_id)))
+    return render(request, 'spotlights/display_item_view.html', context={
         'item': next_queue_item.item,
-        'queue': queue,
-        'queue_admin_url': queue_admin_url,
+        'display': queue,
+        'display_admin_url': display_admin_url,
     })
