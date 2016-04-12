@@ -1,6 +1,8 @@
-import datetime
 from django.db import models
 from django.contrib.auth.models import User
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
+
 
 class TimestampedModel(models.Model):
     created = models.DateTimeField(auto_now_add=True)
@@ -9,102 +11,62 @@ class TimestampedModel(models.Model):
     class Meta:
         abstract = True
 
-def get_slide_image_upload_path(instance, filename):
-    return 'slides/{slide_id}__{filename}__{datetime}'.format(
-        slide_id=instance.id,
-        filename=filename,
-        datetime=datetime.datetime.now().isoformat()
-    )
+class Queue(TimestampedModel):
+    title = models.CharField(max_length=200)
+
+    def __str__(self):
+        return "[Q] {}".format(self.title)
+
+    def get_next_item(self, ids_to_exclude=[], all_queues_history={}):
+        next_item = None
+        filters = {}
+        queue_history = all_queues_history.get(str(self.id))
+        if queue_history:
+            previous_item_id = queue_history[-1]
+            if previous_item_id:
+                filters['item_id__gt'] = previous_item_id
+
+        excludes = {}
+        if ids_to_exclude: 
+            excludes['item_id__in'] = ids_to_exclude
+
+        ordered_items = self.queueitem_set.order_by(
+            'item_id').exclude(**excludes)
+
+        next_queue_item = ordered_items.filter(**filters).first()
+
+        if not next_queue_item:
+            if self.queueitem_set.count() > 0:
+                next_queue_item = ordered_items.first()
+
+        if next_queue_item:
+            next_item = next_queue_item.item
+            if isinstance(next_item, Queue):
+                next_item = next_item.get_next_item(
+                    ids_to_exclude=(ids_to_exclude + [self.id]),
+                    all_queues_history=all_queues_history,
+                    filters=filters,
+                )
+        return next_item
+
+class QueueItem(TimestampedModel):
+    queue = models.ForeignKey(Queue, on_delete=models.CASCADE)
+    item_content_type = models.ForeignKey(ContentType)
+    item_id = models.PositiveIntegerField()
+    item = GenericForeignKey('item_content_type', 'item_id')
+
+    def __str__(self):
+        return "[QI] QueueID:{}; ItemID:{}; ItemType:{}".format(
+            self.queue.id,
+            self.item_id,
+            self.item_content_type,
+        )
+
 
 class Slide(TimestampedModel):
     title = models.CharField(max_length=200)
-    image_file = models.FileField(upload_to=get_slide_image_upload_path, blank=True)
-    image_url = models.CharField(max_length=800)
-    caption = models.CharField(max_length=200, blank=True)
     author = models.ForeignKey(User, related_name='slides', blank=True,
                                null=True, editable=False)
-    last_modified_by = models.ForeignKey(User, name='modified_slides',
-                                         blank=True, null=True, editable=False)
 
     def __str__(self):
-        return "Slide ({})".format(self.title)
-
-    def get_channels(self):
-        return [membership.channel
-                for membership in self.channelmembership_set.all()]
-
-class Channel(TimestampedModel):
-    title = models.CharField(max_length=200)
-
-    def __str__(self):
-        return "Channel ({})".format(self.title)
-
-    def _get_memberships_query(self):
-        return self.channelmembership_set.filter(channel=self)
-
-    def _get_ordered_memberships_query(self):
-        return self._get_memberships_query().order_by(
-            'slide__created')
-
-    def get_first_slide(self):
-        slide = None
-        membership = self._get_ordered_memberships_query().first()
-        if membership:
-            slide = membership.slide
-        return slide
-
-    def get_slide_after(self, prev_slide_id):
-        slide = None
-        try:
-            prev_slide = Slide.objects.get(id=prev_slide_id)
-        except:
-            return slide
-        later_memberships = self._get_ordered_memberships_query().filter(
-            slide__created__gt=prev_slide.created)
-        next_membership = later_memberships.first()
-        if next_membership:
-            slide = next_membership.slide
-        return slide
-
-class ChannelMembership(TimestampedModel):
-    slide = models.ForeignKey(Slide, on_delete=models.CASCADE)
-    channel = models.ForeignKey(Channel, on_delete=models.CASCADE)
-
-class MixChannel(TimestampedModel):
-    title = models.CharField(max_length=200)
-
-    def __str__(self):
-        return "mixChannel ({})".format(self.title)
-
-    def _get_memberships_query(self):
-        return self.mixchannelmembership_set.filter(mixchannel=self)
-
-    def _get_ordered_memberships_query(self):
-        return self._get_memberships_query().order_by(
-            'channel__created')
-
-    def get_first_channel(self):
-        channel = None
-        membership = self._get_ordered_memberships_query().first()
-        if membership:
-            channel = membership.channel
-        return channel
-
-    def get_channel_after(self, prev_channel_id):
-        channel = None
-        try:
-            prev_channel = Channel.objects.get(id=prev_channel_id)
-        except:
-            return None
-        later_memberships = self._get_ordered_memberships_query().filter(
-            channel__created__gt=prev_channel.created)
-        next_membership = later_memberships.first()
-        if next_membership:
-            channel = next_membership.channel
-            print("nexto", channel)
-        return channel
-
-class MixChannelMembership(TimestampedModel):
-    channel = models.ForeignKey(Channel, on_delete=models.CASCADE)
-    mixchannel = models.ForeignKey(MixChannel, on_delete=models.CASCADE)
-
+        return "[S] {}".format(self.title)
