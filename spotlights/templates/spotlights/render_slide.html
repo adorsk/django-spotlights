@@ -2,16 +2,14 @@
     <div class="slide-body">
         <div class="slide-figure-container">
             <div class="slide-figure">
-                {% if slide.image_file or slide.image_url %}
+                {% if slide_class == 'ImageSlide' %}
                 <div class="slide-img-container">
-                    <img class="slide-img"
-                    {% if slide.image_file %}
-                    src="{{slide.image_file.url}}"
-                    {% elif slide.image_url %}
-                    src="{{slide.image_url}}"
-                    {% endif %}
-                    >
+                    <img class="slide-img" src="{{slide.image_file.url}}">
                 </div>
+                {% elif slide_class == 'UrlSlide' %}
+                <iframe src="{{slide.url}}"
+                    style="position: absolute; width: 100%; height: 100%;"
+                    ></iframe>
                 {% else %}
                 No content for slide.
                 {% endif %}

@@ -3,7 +3,7 @@ from django import forms
 from django.forms import widgets
 from django.contrib.contenttypes.admin import GenericTabularInline
 
-from .models import Queue, Slide, QueueItem
+from .models import Queue, QueueItem, ImageSlide, UrlSlide
 
 class QueueItemInline(admin.TabularInline):
     model = QueueItem
@@ -14,12 +14,14 @@ class QueueAdmin(admin.ModelAdmin):
     inlines = [QueueItemInline,]
 admin.site.register(Queue, QueueAdmin)
 
-class SlideAdmin(admin.ModelAdmin):
+class ImageSlideAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         if not change:
             obj.author = request.user
         obj.last_modified_by = request.user
         obj.save()
-admin.site.register(Slide, SlideAdmin)
+admin.site.register(ImageSlide, ImageSlideAdmin)
+
+admin.site.register(UrlSlide)
 
 admin.site.register(QueueItem)
