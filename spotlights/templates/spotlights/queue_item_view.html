@@ -17,5 +17,19 @@
             </main>
 
         </div>
+
+        <script>
+            var msPerSlide = 2 * 1000;
+            var msPerFade = 4 * 1000; // per spotlights-styles.css
+            var slideBody = document.querySelector('.slide-body');
+            setTimeout(function() {
+                slideBody.className = slideBody.className.replace(
+                    'fade-in', 'fade-out');
+                setTimeout(function() {
+                    location.reload();
+                }, msPerFade)
+            }, msPerFade + msPerSlide);
+        </script>
+
     </body>
 </html>
