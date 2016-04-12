@@ -65,8 +65,12 @@ class QueueItem(TimestampedModel):
 
 class Slide(TimestampedModel):
     title = models.CharField(max_length=200)
-    author = models.ForeignKey(User, related_name='slides', blank=True,
-                               null=True, editable=False)
+    author = models.ForeignKey(
+        User, related_name='slides', blank=True,
+        null=True, editable=False)
+    last_modified_by = models.ForeignKey(
+        User, related_name='modified_slides',
+        blank=True, null=True, editable=False)
 
     def __str__(self):
         return "[S] {}".format(self.title)

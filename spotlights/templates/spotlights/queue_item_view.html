@@ -1,0 +1,21 @@
+{% load staticfiles %}
+{% load spotlights %}
+
+<html>
+    <head>
+        <link rel="stylesheet" type="text/css" href="{% static 'spotlights/spotlights-styles.css' %}">
+    </head>
+
+    <body>
+        <div class="main-container">
+            <header>
+                <a href="{{queue_admin_url}}">{{queue_admin_url}}</a>
+            </header>
+
+            <main> 
+                {% render_slide request=request slide=item %}
+            </main>
+
+        </div>
+    </body>
+</html>

@@ -11,12 +11,14 @@ def show_next_item(request, queue_id):
     all_queues_history = request.session.get('history', {})
     next_item = queue.get_next_item(all_queues_history=all_queues_history)
     if next_item:
-        queue_history = all_queues_history.get(queue.id, [])
+        queue_history = all_queues_history.get(str(queue.id), [])
         queue_history.append(next_item.id)
-        all_queues_history[queue.id] = queue_history
+        all_queues_history[str(queue.id)] = queue_history
     request.session['history'] = all_queues_history
-    txt = "title: {}, history: {}".format(
-        next_item.title,
-        json.dumps(request.session['history']),
-    )
-    return HttpResponse(txt)
+    queue_admin_link = request.build_absolute_uri(
+        reverse('admin:spotlights_queue_change', args=(queue_id)))
+    return render(request, 'spotlights/queue_item_view.html', context={
+        'item': next_item,
+        'queue': queue,
+        'queue_admin_link': queue_admin_link,
+    })

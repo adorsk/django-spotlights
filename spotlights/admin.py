@@ -14,5 +14,12 @@ class QueueAdmin(admin.ModelAdmin):
     inlines = [QueueItemInline,]
 admin.site.register(Queue, QueueAdmin)
 
+class SlideAdmin(admin.ModelAdmin):
+    def save_model(self, request, obj, form, change):
+        if not change:
+            obj.author = request.user
+        obj.last_modified_by = request.user
+        obj.save()
+admin.site.register(Slide, SlideAdmin)
+
 admin.site.register(QueueItem)
-admin.site.register(Slide)
