@@ -1,7 +1,6 @@
 import datetime
 from django.db import models
 from django.contrib.auth.models import User
-from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 
 
@@ -12,55 +11,61 @@ class TimestampedModel(models.Model):
     class Meta:
         abstract = True
 
-class Queue(TimestampedModel):
+class Item(TimestampedModel):
+    def __str__(self):
+        return "(Item) id:{}".format(self.id)
+
+class QueueItem(TimestampedModel):
+    queue = models.ForeignKey('Queue', on_delete=models.CASCADE,
+                             related_name='queue')
+    item = models.ForeignKey('Item', on_delete=models.CASCADE,
+                             related_name='item')
+
+
+class Queue(Item):
     title = models.CharField(max_length=200)
+    items = models.ManyToManyField(Item, through='QueueItem',
+                                   related_name='items')
 
     def __str__(self):
         return "[Q] {}".format(self.title)
 
-    def get_next_queue_item(self, ids_to_exclude=[], all_queues_history={}):
-        next_item = None
+    def get_next_slide_route(self, ids_to_exclude=[], historys={}, path=[]):
+        slide_route = None
+        updated_ids_to_exclude = ids_to_exclude + [self.id]
+        updated_path = path + [self.id]
+
         filters = {}
-        queue_history = all_queues_history.get(str(self.id))
+        queue_history = historys.get(str(self.id))
         if queue_history:
-            previous_queue_item_id = queue_history[-1]
-            if previous_queue_item_id:
-                filters['id__gt'] = previous_queue_item_id
+            previous_item_id = queue_history[-1]
+            if previous_item_id:
+                filters['id__gt'] = previous_item_id
 
         excludes = {}
-        if ids_to_exclude: 
-            excludes['item_id__in'] = ids_to_exclude
-
-        ordered_items = self.queueitem_set.order_by(
+        excludes['id__in'] = updated_ids_to_exclude
+        ordered_items = self.items.order_by(
             'id').exclude(**excludes)
 
-        next_queue_item = ordered_items.filter(**filters).first()
+        next_item = ordered_items.filter(**filters).first()
+        if not next_item:
+            if self.items.count() > 0:
+                next_item = ordered_items.first()
 
-        if not next_queue_item:
-            if self.queueitem_set.count() > 0:
-                next_queue_item = ordered_items.first()
-
-        if next_queue_item:
-            if isinstance(next_queue_item.item, Queue):
-                next_queue_item = next_queue_item.get_next_queue_item(
-                    ids_to_exclude=(ids_to_exclude + [self.id]),
-                    all_queues_history=all_queues_history,
-                    filters=filters,
+        if next_item:
+            if hasattr(next_item, 'queue'):
+                slide_route = next_item.queue.get_next_slide_route(
+                    ids_to_exclude=updated_ids_to_exclude,
+                    historys=historys,
+                    path=updated_path,
                 )
-        return next_queue_item
-
-class QueueItem(TimestampedModel):
-    queue = models.ForeignKey(Queue, on_delete=models.CASCADE)
-    item_content_type = models.ForeignKey(ContentType)
-    item_id = models.PositiveIntegerField()
-    item = GenericForeignKey('item_content_type', 'item_id')
-
-    def __str__(self):
-        return "[QI] QueueID:{}; ItemID:{}; ItemType:{}".format(
-            self.queue.id,
-            self.item_id,
-            self.item_content_type,
-        )
+            elif hasattr(next_item, 'slide'):
+                slide = next_item.slide
+                slide_route = {
+                    'path': updated_path + [slide.id],
+                    'slide': slide,
+                }
+        return slide_route
 
 class Display(TimestampedModel):
     title = models.CharField(max_length=200)
@@ -70,7 +75,7 @@ class Display(TimestampedModel):
     def __str__(self):
         return "(Display) {}".format(self.title)
 
-class BaseSlide(TimestampedModel):
+class Slide(Item):
     title = models.CharField(max_length=200, blank=True)
     author = models.ForeignKey(
         User, blank=True, null=True, editable=False,
@@ -80,11 +85,14 @@ class BaseSlide(TimestampedModel):
         related_name='%(class)s_for_modifier')
     caption = models.CharField(max_length=200, blank=True)
 
-    class Meta(TimestampedModel.Meta):
-        abstract = True
-
     def __str__(self):
         return "({}) {}".format(type(self).__name__, self.title)
+
+    @property
+    def type(self):
+        for subclass in self.__class__.__subclasses__():
+            if hasattr(self, subclass.__name__.lower()):
+                return subclass.__name__
 
 def _get_slide_media_path(instance, filename):
     return 'slides/{slide_id}__{filename}__{datetime}'.format(
@@ -92,9 +100,8 @@ def _get_slide_media_path(instance, filename):
         filename=filename,
         datetime=datetime.datetime.now().isoformat()
     )
-
-class ImageSlide(BaseSlide):
+class ImageSlide(Slide):
     image_file = models.FileField(upload_to=_get_slide_media_path, blank=True)
 
-class UrlSlide(BaseSlide):
+class UrlSlide(Slide):
     url = models.CharField(max_length=1024, blank=True)

@@ -7,6 +7,5 @@ def render_slide(request=None, slide=None):
     return {
         'request': request,
         'slide': slide,
-        'slide_class': type(slide).__name__,
+        'slide_type': slide.type,
     }
-

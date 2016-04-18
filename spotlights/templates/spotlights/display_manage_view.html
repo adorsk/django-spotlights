@@ -1,0 +1,25 @@
+<html>
+    <head>
+    </head>
+
+    <body>
+        <h2>Display Title</h2>
+        <hr>
+
+        <section>
+            <h3>Queue</h3>
+            <button>+ Add Item to Queue</button>
+
+            <ol>
+                {% for item in display.queue.items.all %}
+                <li>
+                    <span>{{item.title}}</span>
+                    <span>item thumb</span>
+                    <span>{{item.author.username}}</span>
+                    <span>{{item.last_modified}}</span>
+                </li>
+                {% endfor %}
+            </ol>
+        </section>
+    </body>
+</html>

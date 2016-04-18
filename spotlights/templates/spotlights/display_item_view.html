@@ -10,15 +10,17 @@
         <div class="main-container">
             <header>
                 <a href="{{display_admin_url}}">{{display_admin_url}}</a>
+                SlidePath: {{slide_path}}
             </header>
 
             <main> 
-                {% render_slide request=request slide=item %}
+                {% render_slide request=request slide=slide %}
             </main>
 
         </div>
 
         <script>
+            /*
             var msPerSlide = 2 * 1000;
             var msPerFade = 4 * 1000; // per spotlights-styles.css
             var slideBody = document.querySelector('.slide-body');
@@ -29,6 +31,7 @@
                     location.reload();
                 }, msPerFade)
             }, msPerFade + msPerSlide);
+            */
         </script>
 
     </body>

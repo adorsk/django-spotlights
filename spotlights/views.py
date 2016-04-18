@@ -1,3 +1,4 @@
+import copy
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.views.generic.detail import DetailView
@@ -6,21 +7,40 @@ import json
 
 from .models import Display, Queue
 
-def show_next_item_for_display(request, display_id):
+def show_next_slide_for_display(request, display_id):
     display = Display.objects.get(pk=display_id)
     queue = display.queue
-    all_queues_history = request.session.get('history', {})
-    next_queue_item = queue.get_next_queue_item(
-        all_queues_history=all_queues_history)
-    if next_queue_item:
-        queue_history = all_queues_history.get(str(queue.id), [])
-        queue_history.append(next_queue_item.id)
-        all_queues_history[str(queue.id)] = queue_history
-    request.session['history'] = all_queues_history
+    historys = request.session.get('historys', {})
+    slide_route = queue.get_next_slide_route(historys=historys)
+    if slide_route:
+        slide = slide_route['slide']
+        slide_path = slide_route['path']
+        updated_historys = _get_updated_historys(historys, slide_path)
+    else:
+        slide = None
+        slide_path = None
+        updated_historys = historys
+    request.session['historys'] = updated_historys
     display_admin_url = request.build_absolute_uri(
         reverse('admin:spotlights_display_change', args=(queue.id,)))
     return render(request, 'spotlights/display_item_view.html', context={
-        'item': next_queue_item.item,
-        'display': queue,
+        'slide': slide,
+        'slide_path': slide_path,
+        'display': display,
         'display_admin_url': display_admin_url,
+    })
+
+def _get_updated_historys(historys, slide_path):
+    updated_historys = copy.deepcopy(historys)
+    path_component_index = 0
+    for i in range(len(slide_path) - 1):
+        history_key = str(slide_path[i])
+        next_value = str(slide_path[i + 1])
+        updated_historys.setdefault(history_key, []).append(next_value)
+    return updated_historys
+
+def manage_display(request, display_id):
+    display = Display.objects.get(pk=display_id)
+    return render(request, 'spotlights/display_manage_view.html', context={
+        'display': display,
     })

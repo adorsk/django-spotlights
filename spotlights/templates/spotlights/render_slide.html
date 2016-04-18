@@ -2,12 +2,13 @@
     <div class="slide-body fade-in">
         <div class="slide-figure-container">
             <div class="slide-figure">
-                {% if slide_class == 'ImageSlide' %}
+                {% if slide_type == 'ImageSlide' %}
                 <div class="slide-img-container">
-                    <img class="slide-img" src="{{slide.image_file.url}}">
+                    <img class="slide-img"
+                        src="{{slide.mageslide.image_file.url}}" />
                 </div>
-                {% elif slide_class == 'UrlSlide' %}
-                <iframe src="{{slide.url}}"
+                {% elif slide_type == 'UrlSlide' %}
+                <iframe src="{{slide.urlslide.url}}"
                     style="position: absolute; width: 100%; height: 100%;"
                     ></iframe>
                 {% else %}
