@@ -90,6 +90,8 @@ class Slide(Item):
 
     @property
     def type(self):
+        # Subclasses will have an attribute w/ the
+        # name of the subclass, per Django model inheritance.
         for subclass in self.__class__.__subclasses__():
             if hasattr(self, subclass.__name__.lower()):
                 return subclass.__name__
