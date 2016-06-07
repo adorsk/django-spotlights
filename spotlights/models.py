@@ -84,26 +84,8 @@ class Slide(Item):
         User, blank=True, null=True, editable=False,
         related_name='%(class)s_for_modifier')
     caption = models.CharField(max_length=200, blank=True)
+    render_cfg = models.TextField(blank=True)
+    type = models.CharField(max_length=200, blank=True)
 
     def __str__(self):
         return "({}) {}".format(type(self).__name__, self.title)
-
-    @property
-    def type(self):
-        # Subclasses will have an attribute w/ the
-        # name of the subclass, per Django model inheritance.
-        for subclass in self.__class__.__subclasses__():
-            if hasattr(self, subclass.__name__.lower()):
-                return subclass.__name__
-
-def _get_slide_media_path(instance, filename):
-    return 'slides/{slide_id}__{filename}__{datetime}'.format(
-        slide_id=instance.id,
-        filename=filename,
-        datetime=datetime.datetime.now().isoformat()
-    )
-class ImageSlide(Slide):
-    image_file = models.FileField(upload_to=_get_slide_media_path, blank=True)
-
-class UrlSlide(Slide):
-    url = models.CharField(max_length=1024, blank=True)

@@ -12,6 +12,7 @@ setup(
     version='0.1',
     packages=find_packages(),
     include_package_data=True,
+    install_requires=['djangorestframework'],
     license='MIT License',
     description='A Django slideshow app.',
     long_description=README,
